@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import numpy as np
 import scipy.io as sio
+from PIL import Image
 np.random.seed(2333)  # for reproducibility
 
 def load_data(filename):
@@ -38,6 +39,23 @@ def init_data(data, data_size, time_size):
     X = np.array(X, dtype='float32')
     y = np.array(y, dtype='float32')
     return X, y
+
+def prepare_data(filepath, all_times, data_step, data_stride):
+  X = []
+  y = []
+  for i in range(all_times):
+    count_X = range(i*data_stride, i*data_stride + data_step)
+    for j in count_X:
+      img = Image.open(filepath + "/" + str(j+1)+".png")
+      data = np.resize(np.asarray(img), (330, 580, 4))#np.asarray(img)
+      X.append(data[:,:,0])
+    count_y = i*data_stride + data_step
+    img = Image.open(filepath + "/" + str(count_y+1)+".png")
+    data = np.resize(np.asarray(img), (330, 580, 4))#np.asarray(img)
+    y.append(data[:,:,0])
+  X = np.array(X, dtype='float32')
+  y = np.array(y, dtype='float32')
+  return X, y
 
 '''
 def MinMaxNormalization(data):p
