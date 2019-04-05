@@ -16,8 +16,8 @@ import argparse
 import numpy as np
 from glob import glob
 
-import tensorflow as tf
-import keras.backend.tensorflow_backend as KTF
+#import tensorflow as tf
+#import keras.backend.tensorflow_backend as KTF
 from keras.optimizers import Adam
 from keras.callbacks import ReduceLROnPlateau
 from keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
@@ -32,12 +32,12 @@ import metrics as metrics
 
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0" # 使用编号为1，2号的GPU
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 1 # 每个GPU现存上届控制在60%以内
-session = tf.Session(config=config)
+#config = tf.ConfigProto()
+#config.gpu_options.per_process_gpu_memory_fraction = 1 # 每个GPU现存上届控制在60%以内
+#session = tf.Session(config=config)
 
 # 设置session
-KTF.set_session(session)
+#KTF.set_session(session)
 
 
 # In[ ]:

@@ -15,6 +15,6 @@ python ${runfile}.py \
   -nr 400 \
   -ns 51 \
   -nph 2 \
-  -batch_size 2 \
-  -epoch 4 \
+  -batch_size 10 \
+  -epoch 100 \
   -ratio 0.5 
