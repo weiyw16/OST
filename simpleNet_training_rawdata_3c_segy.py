@@ -23,6 +23,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateSchedule
 import keras
 from keras.models import Model
 from keras.layers import Conv2D
+from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.normalization import BatchNormalization
 from keras.layers import (Input, Activation, merge, Dense, Reshape)
 import metrics as metrics
@@ -75,6 +76,21 @@ class Dataloader():
         self.nr = nr
         self.nph = nph
 
+    def normaliza(self, datain):
+        for batch_ii in range( datain.shape[0] ):
+            for iterm_ii in range( datain.shape[-1] ):
+                target = datain[batch_ii, :, :, iterm_ii]
+                mind = target.min() #datain[batch_ii, :, :, iterm_ii].min()
+                maxd = target.max() #datain[batch_ii, :, :, iterm_ii].max()      
+                for ii in range(target.shape[0]):
+                    for jj in range(target.shape[1]):
+                        if target[ii, jj] > 0: 
+                            target[ii,jj] = target[ii,jj] / maxd
+                        if target[ii, jj] < 0:
+                            target[ii,jj] = target[ii,jj] / ( 0 - mind )
+                datain[batch_ii, :, :, iterm_ii] = target
+    #     return datain
+    
     def load_batch(self, batch_size=1, is_testing=False, ratio=0.5):        
         self.n_batches = int( 151 / batch_size * ratio ) #int( len(path) / batch_size * ratio )
         x_data = np.empty((batch_size, self.nt, self.nr, self.nph)) ## b-2001-467-4, acc
@@ -94,6 +110,8 @@ class Dataloader():
                         x_data[batch_i,:,nr_i,0] =                         segyfile.trace[i*batch_size*4*self.nr + batch_i * 4 * self.nr + nr_i * 4 + 1]
                         x_data[batch_i,:,nr_i,1] =                         segyfile.trace[i*batch_size*4*self.nr + batch_i * 4 * self.nr + nr_i * 4 + 2]
                         x_data[batch_i,:,nr_i,2] =                         segyfile.trace[i*batch_size*4*self.nr + batch_i * 4 * self.nr + nr_i * 4 + 3]                 
+                self.normaliza(x_data)
+                self.normaliza(y_data)
                 yield x_data, y_data
                 i = i + 1
 
@@ -103,32 +121,60 @@ class Dataloader():
 
 def simpleNet(nt, nr, nph):
     x_input = Input( shape=( nt, nr, nph) )##one_piece
-    conv1 = Conv2D(
-        nb_filter=64, nb_row=3, nb_col=3, border_mode="same", data_format="channels_last")(x_input)
+#     conv1 = Conv2D(
+#         nb_filter=64, nb_row=3, nb_col=3, padding="same", data_format="channels_last")(x_input)
+    conv1 = Conv2D(filters=64, kernel_size=(3,3), strides=(1, 1), padding='same', data_format='channels_last', 
+                   dilation_rate=(1, 1), activation=None, use_bias=True, kernel_initializer='glorot_uniform',
+                   bias_initializer='zeros', kernel_regularizer=None, bias_regularizer=None, 
+                   activity_regularizer=None, kernel_constraint=None, bias_constraint=None)(x_input)
+    conv1 = LeakyReLU()(conv1)
     conv1 = BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True, 
                                beta_initializer='zeros', gamma_initializer='ones', moving_mean_initializer='zeros', 
                                moving_variance_initializer='ones', beta_regularizer=None, gamma_regularizer=None, 
                                beta_constraint=None, gamma_constraint=None)(conv1)
-    conv1_1 = Conv2D(
-        nb_filter=128, nb_row=3, nb_col=3, border_mode="same", data_format="channels_last")(conv1)
+#     conv1_1 = Conv2D(
+#         nb_filter=128, nb_row=3, nb_col=3, padding="same", data_format="channels_last")(conv1)
+    conv1_1 = Conv2D(filters=128, kernel_size=(3,3), strides=(1, 1), padding='same', data_format='channels_last', 
+                   dilation_rate=(1, 1), activation=None, use_bias=True, kernel_initializer='glorot_uniform',
+                   bias_initializer='zeros', kernel_regularizer=None, bias_regularizer=None, 
+                   activity_regularizer=None, kernel_constraint=None, bias_constraint=None)(conv1)
+    conv1_1 = LeakyReLU()(conv1_1)
     conv1_1 = BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True, 
                                beta_initializer='zeros', gamma_initializer='ones', moving_mean_initializer='zeros', 
                                moving_variance_initializer='ones', beta_regularizer=None, gamma_regularizer=None, 
                                beta_constraint=None, gamma_constraint=None)(conv1_1)
-    conv1_2 = Conv2D(
-        nb_filter=128, nb_row=3, nb_col=3, border_mode="same", data_format="channels_last")(conv1_1)
+    
+    conv1_2 = Conv2D(filters=128, kernel_size=(3,3), strides=(1, 1), padding='same', data_format='channels_last', 
+                   dilation_rate=(1, 1), activation=None, use_bias=True, kernel_initializer='glorot_uniform',
+                   bias_initializer='zeros', kernel_regularizer=None, bias_regularizer=None, 
+                   activity_regularizer=None, kernel_constraint=None, bias_constraint=None)(conv1_1)
+    conv1_2 = LeakyReLU()(conv1_2)
+#     conv1_2 = Conv2D(
+#         nb_filter=128, nb_row=3, nb_col=3, padding="same", data_format="channels_last")(conv1_1)
     conv1_2 = BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True, 
                                beta_initializer='zeros', gamma_initializer='ones', moving_mean_initializer='zeros', 
                                moving_variance_initializer='ones', beta_regularizer=None, gamma_regularizer=None, 
                                beta_constraint=None, gamma_constraint=None)(conv1_2)
-    conv1_3 = Conv2D(
-        nb_filter=128, nb_row=3, nb_col=3, border_mode="same", data_format="channels_last")(conv1_2)
+#     conv1_3 = Conv2D(
+#         nb_filter=128, nb_row=3, nb_col=3, padding="same", data_format="channels_last")(conv1_2)
+    conv1_3 = Conv2D(filters=128, kernel_size=(3,3), strides=(1, 1), padding='same', data_format='channels_last', 
+                   dilation_rate=(1, 1), activation=None, use_bias=True, kernel_initializer='glorot_uniform',
+                   bias_initializer='zeros', kernel_regularizer=None, bias_regularizer=None, 
+                   activity_regularizer=None, kernel_constraint=None, bias_constraint=None)(conv1_2) 
+    conv1_3 = LeakyReLU()(conv1_3)
     conv1_3 = BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True, 
                                beta_initializer='zeros', gamma_initializer='ones', moving_mean_initializer='zeros', 
                                moving_variance_initializer='ones', beta_regularizer=None, gamma_regularizer=None, 
                                beta_constraint=None, gamma_constraint=None)(conv1_3)
-    conv2 = Conv2D(
-        nb_filter=1, nb_row=3, nb_col=3, border_mode="same", data_format="channels_last")(conv1_3)
+    
+    conv2 = Conv2D(filters=1, kernel_size=(3,3), strides=(1, 1), padding='same', data_format='channels_last', 
+                   dilation_rate=(1, 1), activation=None, use_bias=True, kernel_initializer='glorot_uniform',
+                   bias_initializer='zeros', kernel_regularizer=None, bias_regularizer=None, 
+                   activity_regularizer=None, kernel_constraint=None, bias_constraint=None)(conv1_3)
+
+
+#     conv2 = Conv2D(
+#         nb_filter=1, nb_row=3, nb_col=3, padding="same", data_format="channels_last")(conv1_3)
 
     model = Model(inputs=x_input, outputs=conv2)
     return model
