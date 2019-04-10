@@ -17,5 +17,6 @@ python ${runfile}.py \
   -nph 3 \
   -nop 1 \
   -batch_size 2 \
+  -sample_interval 10 \
   -epoch 4 \
   -ratio 0.5

@@ -12,8 +12,8 @@ GAN
 import os
 import keras
 import segyio
-import datetime
 import argparse
+import datetime
 import numpy as np
 from keras.models import Model
 from keras.optimizers import Adam
@@ -48,6 +48,7 @@ class parameters():
         parser.add_argument('-nr', type=int, default=400, help='receivers')
         parser.add_argument('-ns', type=int, default=51, help='time steps')
         parser.add_argument('-batch_size', type=int, default=2, help='batch size')
+        parser.add_argument('-sample_interval', type=int, default=10, help='save per epoch')
         parser.add_argument('-nph', type=int, default=3, help='how many phase in one data')
         parser.add_argument('-nop', type=int, default=1, help='how many phase in one data')
         parser.add_argument('-epoch', type=int, default=100, help='epoch')
@@ -310,6 +311,8 @@ fake = np.zeros((opt.batch_size,) + disc_patch )
 
 start_time = datetime.datetime.now()
 save_dir = os.path.join(os.getcwd(), 'saved_models')
+if not os.path.isdir(save_dir):
+    os.makedirs(save_dir)
 for epoch in range(opt.epoch):
     for batch_i, (data_B, data_A) in enumerate(
         my_data_loader.load_batch(batch_size=opt.batch_size, is_testing=False, ratio=opt.ratio)):
@@ -337,7 +340,7 @@ for epoch in range(opt.epoch):
         print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] time: %s" % 
                (epoch+1, opt.epoch, batch_i+1, my_data_loader.n_batches,
                 d_loss[0], 100*d_loss[1], g_loss[0], elapsed_time))
-    if epoch % sample_interval == 0:
+    if epoch % opt.sample_interval == 0:
         this_name = opt.out_name + "-" + str(epoch+1)
         D.save_weights(os.path.join( save_dir, '{}-D.h5'.format(this_name)), overwrite=True)
         G.save_weights(os.path.join( save_dir, '{}-C.h5'.format(this_name)), overwrite=True)
